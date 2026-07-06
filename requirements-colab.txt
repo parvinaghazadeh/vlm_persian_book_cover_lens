@@ -1,0 +1,12 @@
+pandas==2.2.2
+Pillow==11.3.0
+datasets>=3.0.0
+rapidfuzz>=3.9.0
+matplotlib>=3.8.0
+tqdm>=4.66.0
+# Optional GPU/VLM dependencies:
+# transformers>=4.53.0
+# accelerate>=1.8.0
+# peft>=0.13.0
+# bitsandbytes>=0.43.0
+# qwen-vl-utils>=0.0.8

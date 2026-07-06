@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Outputs and checkpoints
+outputs/*.csv
+outputs/*.png
+outputs/*.pt
+outputs/*.bin
+outputs/*.safetensors
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
