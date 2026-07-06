@@ -1,196 +1,205 @@
-# PersianBookCoverLens: Persian Book Cover Title Recognition
+# VLM PersianBookCoverLens
 
-**PersianBookCoverLens** is a reproducible Persian book-cover title recognition project for a Vision-Language Models (VLM) course assignment. The task is to extract the Persian title of a book from its cover image, evaluate the model before fine-tuning, fine-tune it on a subset of the training data, and compare performance after fine-tuning.
+**Persian Book Title Recognition from Book Cover Images using Vision-Language Models**
 
-The project is designed for two execution realities:
+This repository contains a Google Colab-ready Jupyter notebook for extracting Persian book titles from cover images using a Vision-Language Model (VLM). The project is designed for a course assignment on Vision-Language Models and includes dataset loading, baseline inference, evaluation metrics, LoRA/QLoRA fine-tuning code, and before/after comparison outputs.
 
-1. **CPU-compatible final run** for free Google Colab sessions without GPU access.
-2. **Optional Qwen2.5-VL track** for GPU runtimes.
-
-The default notebook configuration uses the CPU-compatible track so that the project can be tested and submitted without crashing in a CPU-only Colab environment.
+> **Important note about runtime:** Full VLM inference and fine-tuning require a CUDA GPU runtime. The notebook includes a CPU-safe `dev_demo` mode so the project structure, dataset pipeline, metric functions, output files, and plots can be tested on a free CPU-only Colab runtime without producing misleading low-quality OCR results.
 
 ---
 
-## Assignment Mapping
+## Project Objective
 
-| Assignment requirement | Implemented in this project |
-|---|---|
-| Load Persian book-cover dataset | Yes |
-| Select train subset | Yes |
-| Use test subset for evaluation | Yes |
-| Extract Persian title from cover image | Yes |
-| Compute Exact Match | Yes |
-| Fine-tune on training subset | Yes in CPU OCR track; optional Qwen/VLM track for GPU |
-| Re-evaluate after fine-tuning | Yes |
-| Compare before/after metrics | Yes |
-| Plot metric improvement | Yes |
-| Optional Levenshtein Accuracy/Similarity | Yes |
-| Optional Word-level F1 | Yes |
+The goal is to recognize the **Persian title of a book** from its cover image.
+
+Given:
+
+- Input: a book cover image
+- Target output: the Persian title text
+
+The notebook supports:
+
+1. Loading the Persian book cover dataset.
+2. Running a base VLM before fine-tuning.
+3. Computing evaluation metrics.
+4. Fine-tuning the VLM using LoRA/QLoRA when GPU is available.
+5. Running evaluation after fine-tuning.
+6. Comparing before/after results using tables, CSV files, and a metric comparison plot.
 
 ---
 
 ## Dataset
 
-The project uses the Hugging Face dataset:
-
-```python
-DATASET_ID = "shenasa/bookroom-persian-book-covers-and-titles"
-```
-
-The dataset contains Persian book-cover images and title text labels. The notebook expects the following columns:
+The project uses the following Hugging Face dataset:
 
 ```text
-image
-text
+shenasa/bookroom-persian-book-covers-and-titles
 ```
+Hugging Face page:
+
+```text
+https://huggingface.co/datasets/shenasa/bookroom-persian-book-covers-and-titles
+```
+
+The dataset contains book cover images and corresponding Persian title labels.
+
+Default assignment-oriented split setup:
+
+```python
+TRAIN_LIMIT = 1000
+EVAL_LIMIT = 200
+```
+
+For quick development tests, the notebook can use much smaller subsets.
 
 ---
 
-## Model Tracks
+## Model
 
-### 1. CPU-compatible OCR fine-tuning track
+The main VLM track uses:
 
-This is the default and recommended track when running on free Colab without GPU.
-
-It trains a small image-to-character OCR model:
-
-- compact CNN image encoder;
-- GRU character decoder;
-- Persian text normalization;
-- greedy decoding;
-- before/after fine-tuning evaluation.
-
-This track is intentionally lightweight. It is not meant to outperform large VLMs, but it provides a real, reproducible fine-tuning experiment under CPU limitations.
-
-Default CPU settings:
-
-```python
-EXPERIMENT_TRACK = "cpu_light_ocr"
-FAST_DEV_RUN = False
-CPU_SAFE_MODE = True
-TRAIN_LIMIT = 200
-EVAL_LIMIT = 50
-EPOCHS = 3
+```text
+Qwen/Qwen2.5-VL-3B-Instruct
 ```
 
-For a quick smoke test:
+This model is used for image-conditioned text generation. In this project, the prompt asks the model to return only the Persian book title visible on the cover.
+
+---
+
+## Runtime Modes
+
+The notebook has two clear execution modes.
+
+### 1. `dev_demo` mode — default for CPU-only Colab
 
 ```python
+RUN_MODE = "dev_demo"
+```
+
+This mode is intended for:
+
+- free Colab CPU runtime
+- testing notebook execution
+- validating dataset loading
+- validating metric functions
+- validating CSV/plot output generation
+- presenting the project pipeline when GPU is unavailable
+
+This mode **does not claim real VLM performance**. It creates structured placeholder outputs so the notebook can run end-to-end without downloading or fine-tuning a large VLM on CPU.
+
+### 2. `qwen_gpu` mode — real VLM experiment
+
+```python
+RUN_MODE = "qwen_gpu"
+```
+
+This mode is intended for:
+
+- Colab GPU runtime
+- Kaggle GPU notebook
+- local CUDA machine
+- real baseline inference
+- real LoRA/QLoRA fine-tuning
+- real before/after metric comparison
+
+If `qwen_gpu` is selected and CUDA is not available, the notebook stops early with a clear error message instead of silently running a weak CPU fallback.
+
+---
+
+## Evaluation Metrics
+
+The project implements the metrics requested in the assignment:
+
+### Exact Match
+
+Measures whether the predicted title exactly matches the ground truth.
+
+### Normalized Exact Match
+
+Applies Persian text normalization before exact matching. This reduces false mismatches caused by Arabic/Persian character variants, diacritics, spacing, and punctuation.
+
+### Levenshtein Similarity
+
+Measures character-level similarity between prediction and ground truth. This is more informative than Exact Match when the model makes small OCR mistakes.
+
+### Word-level F1
+
+Measures token-level overlap between predicted and true titles. This is useful when the model extracts some correct words but misses or adds others.
+
+---
+
+## Technologies Used
+
+- **Python** — main programming language
+- **Google Colab** — target execution environment
+- **Hugging Face Datasets** — dataset loading and subset selection
+- **Hugging Face Transformers** — VLM loading, processor, generation, and training interface
+- **Qwen2.5-VL** — main Vision-Language Model track
+- **qwen-vl-utils** — Qwen visual input preprocessing
+- **PyTorch** — model execution and training backend
+- **PEFT** — LoRA adapter fine-tuning
+- **BitsAndBytes** — 4-bit quantization for GPU memory reduction
+- **RapidFuzz** — Levenshtein similarity calculation
+- **Pandas** — result tables and CSV outputs
+- **Matplotlib** — metric comparison plot
+
+---
+
+## Main Features
+
+- Google Colab-ready notebook
+- CPU-safe development mode
+- GPU-only real VLM mode
+- Persian text normalization
+- Exact Match metric
+- Normalized Exact Match metric
+- Levenshtein Similarity metric
+- Word-level F1 metric
+- Baseline prediction pipeline
+- Fine-tuned prediction pipeline
+- LoRA/QLoRA fine-tuning code
+- Before/after comparison table
+- CSV export of predictions
+- CSV export of metric summary
+- Metric comparison chart
+- Clear separation between demo outputs and real model outputs
+- GitHub-ready README and `.gitignore`
+
+---
+
+## Recommended Colab Usage
+
+### CPU-only Colab / safe project demonstration
+
+Use this configuration:
+
+```python
+RUN_MODE = "dev_demo"
 FAST_DEV_RUN = True
 ```
 
-### 2. Optional Qwen2.5-VL track
-
-The notebook also includes an optional Qwen2.5-VL inference section:
+or for a larger output table without running the VLM:
 
 ```python
-QWEN_MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
-```
-
-Use this track only when a GPU runtime is available:
-
-```python
-EXPERIMENT_TRACK = "qwen_vlm"
-CPU_SAFE_MODE = False
-```
-
-Full Qwen/VLM fine-tuning is not practical on CPU-only Colab. The notebook keeps this track separate to avoid runtime crashes.
-
----
-
-## Metrics
-
-The notebook computes the following metrics:
-
-### 1. Raw Exact Match
-
-Checks whether the predicted title exactly matches the ground-truth title without normalization.
-
-### 2. Normalized Exact Match
-
-Applies Persian text normalization before comparison. This handles common differences such as Arabic/Persian Yeh and Kaf, half-spaces, punctuation, and digit forms.
-
-### 3. Levenshtein Similarity
-
-Measures character-level similarity between prediction and ground truth:
-
-```text
-1 - edit_distance / max_length
-```
-
-This is useful for OCR because small spelling or character mistakes should not be treated the same as completely wrong predictions.
-
-### 4. Word-level F1
-
-Measures word overlap between prediction and ground truth. This is useful when part of the title is recognized correctly.
-
----
-
-## Output Files
-
-After a successful run, the notebook creates:
-
-```text
-outputs/baseline_predictions.csv
-outputs/finetuned_predictions.csv
-outputs/metrics_summary.csv
-outputs/metrics_comparison.png
-outputs/training_history.csv
-outputs/tiny_cover_ocr_finetuned.pt
-```
-
-Recommended files to include in your report or presentation:
-
-- `metrics_summary.csv`
-- `metrics_comparison.png`
-- sample rows from `baseline_predictions.csv`
-- sample rows from `finetuned_predictions.csv`
-
----
-
-## How to Run in Free Google Colab Without GPU
-
-1. Open the notebook in Google Colab.
-2. Keep the runtime as the default CPU runtime.
-3. Run the installation cell.
-4. If Colab requests a restart, restart the runtime once.
-5. Continue from the imports/configuration section.
-6. Keep the default configuration:
-
-```python
-EXPERIMENT_TRACK = "cpu_light_ocr"
+RUN_MODE = "dev_demo"
 FAST_DEV_RUN = False
-CPU_SAFE_MODE = True
 ```
 
-If the run is slow, reduce:
+This will validate the full project pipeline but will not produce real model-performance metrics.
+
+### GPU runtime / final real experiment
+
+Use this configuration:
 
 ```python
-TRAIN_LIMIT = 100
-EVAL_LIMIT = 30
-EPOCHS = 2
+RUN_MODE = "qwen_gpu"
+FAST_DEV_RUN = False
+RUN_BASELINE_INFERENCE = True
+RUN_FINETUNING = True
+RUN_FINETUNED_INFERENCE = True
 ```
 
----
-
-## How to Run with GPU
-
-If you have access to a GPU runtime, you can use the Qwen/VLM track:
-
-```python
-EXPERIMENT_TRACK = "qwen_vlm"
-CPU_SAFE_MODE = False
-```
-
-Also set:
-
-```python
-INSTALL_QWEN_DEPS = True
-```
-
-in the installation cell.
-
-For assignment-scale evaluation, use:
+Default final limits:
 
 ```python
 TRAIN_LIMIT = 1000
@@ -199,85 +208,36 @@ EVAL_LIMIT = 200
 
 ---
 
-## Important Note About CPU-only Fine-tuning
+## Output Files
 
-The original assignment asks for VLM fine-tuning. Full VLM fine-tuning with Qwen2.5-VL is not realistic on CPU-only Colab. Therefore, this project includes a CPU-compatible OCR fine-tuning track to demonstrate the same experimental structure:
-
-1. evaluate before fine-tuning;
-2. fine-tune on Persian book-cover data;
-3. evaluate after fine-tuning;
-4. compare Exact Match, Levenshtein Similarity, and Word-level F1.
-
-This makes the notebook executable and reproducible under the available hardware while keeping the Qwen/VLM path available for GPU-based extension.
-
-Suggested explanation in your presentation:
-
-> The original VLM fine-tuning path is implemented for GPU runtimes. Because my available Colab runtime was CPU-only, I added a CPU-compatible OCR fine-tuning track to demonstrate the required before/after fine-tuning comparison in a reproducible way. The same evaluation metrics are used in both tracks.
-
----
-
-## Repository Structure
+The notebook writes results to the `outputs/` directory:
 
 ```text
-vlm_persian_book_cover_lens/
-├── PersianBookCoverLens.ipynb
-├── README.md
-├── requirements-colab.txt
-├── .gitignore
-└── outputs/
-    └── .gitkeep
+outputs/baseline_predictions.csv
+outputs/finetuned_predictions.csv
+outputs/metrics_summary.csv
+outputs/metrics_comparison.png
+outputs/sample_predictions_after_finetuning.csv
+outputs/qwen_lora_adapter/
 ```
 
 ---
 
-## Troubleshooting
+## How to Report Results
 
-### PIL / Pillow import error
+A concise report can be written as follows:
 
-If you see a Pillow/PIL error, set this in the installation cell:
+> The base VLM was evaluated on the selected test subset using Exact Match, Normalized Exact Match, Levenshtein Similarity, and Word-level F1. The model was then fine-tuned on a subset of Persian book cover images using LoRA/QLoRA. After fine-tuning, the same test subset and the same metrics were used for evaluation. The final table and plot compare model performance before and after fine-tuning.
 
-```python
-REPAIR_PIL = True
-```
+If only CPU runtime was available:
 
-Run the install cell, restart runtime, then continue.
-
-### CPU run is too slow
-
-Reduce the CPU limits:
-
-```python
-TRAIN_LIMIT = 100
-EVAL_LIMIT = 30
-EPOCHS = 2
-```
-
-### Qwen track fails on CPU
-
-That is expected. Use the Qwen track only with GPU.
+> Due to CPU-only runtime limitations, the notebook was executed in development demonstration mode. The full GPU-based Qwen2.5-VL inference and LoRA fine-tuning implementation is included, but actual model training requires a CUDA GPU runtime.
 
 ---
 
 ## Limitations
 
-- The CPU-compatible model is intentionally small and may not achieve high accuracy on complex book covers.
-- Book covers often contain multiple text regions, author names, subtitles, decorative fonts, and low-resolution text.
-- Exact Match is very strict for OCR tasks; Levenshtein Similarity and Word-level F1 are more informative.
-- Full VLM fine-tuning requires GPU resources.
-
----
-
-## Future Work
-
-- Fine-tune Qwen2.5-VL or a smaller modern VLM with LoRA/QLoRA on a GPU runtime.
-- Add a text-region detector before OCR.
-- Use stronger Persian OCR models as initialization.
-- Use synthetic Persian title rendering for OCR pretraining.
-- Add data augmentation such as small rotations, brightness changes, and crops.
-- Add evaluation on the full 200-sample test subset when GPU or longer CPU runtime is available.
-
----
-
-## License
-
-This project is prepared for educational use. Please check the licenses of the dataset and any external model before publishing trained weights.
+- Real VLM fine-tuning is not practical on CPU-only Colab.
+- Exact Match is strict and may score near zero even when the predicted title is partially correct.
+- Persian OCR is sensitive to font, cover design, text orientation, visual clutter, and decorative typography.
+- The `dev_demo` mode is only for pipeline validation and should not be reported as real model accuracy.
