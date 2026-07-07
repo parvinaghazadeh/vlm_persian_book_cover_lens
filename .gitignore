@@ -4,13 +4,23 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Outputs and checkpoints
-outputs/*.csv
-outputs/*.png
-outputs/*.pt
-outputs/*.bin
-outputs/*.safetensors
+#outputs/*.csv
+#outputs/*.png
+#outputs/*.pt
+#outputs/*.bin
+##outputs/*.safetensors
+#outputs/
+#persian_book_title_vlm_outputs/
+#checkpoints/
+
 
 # OS / editor
 .DS_Store
 .vscode/
 .idea/
+
+*.bin
+*.safetensors
+*.pt
+*.pth
+.env

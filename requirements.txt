@@ -1,0 +1,16 @@
+# Colab-oriented dependencies
+# After installing these packages in Colab, restart the runtime once.
+
+accelerate
+datasets
+peft
+trl
+bitsandbytes
+qwen-vl-utils
+rapidfuzz
+pandas
+numpy
+matplotlib
+pillow
+tqdm
+git+https://github.com/huggingface/transformers

@@ -1,0 +1,3 @@
+﻿stage,exact_match,levenshtein_similarity,word_f1,n_samples
+Base VLM,0.09,0.4804357843673747,0.35748135524606106,100
+Fine-tuned VLM,0.1,0.5819930991679099,0.411647715030068,100
